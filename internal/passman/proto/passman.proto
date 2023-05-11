@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option go_package = "./;passman";
+package passman;
+
+message GetReq {
+  string Token = 1;
+  string ServiceName = 2;
+}
+
+message Credentials {
+  string Login = 1;
+  string Password = 2;
+}
+
+message ServiceCredentials {
+  string ServiceName = 1;
+  repeated Credentials Credentials = 2;
+}
+
+service PassmanService {
+  rpc GetCredentials(GetReq) returns (ServiceCredentials) {}
+}

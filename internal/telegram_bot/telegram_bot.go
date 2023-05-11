@@ -1,16 +1,15 @@
 package telegram_bot
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/Natali-Skv/ProtectMyPassBot/config"
+	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"go.uber.org/zap"
 	"log"
 )
-
-type TelegramBot struct {
-	l *zap.Logger
-}
 
 const (
 	setCommand = "set"
@@ -22,25 +21,30 @@ var (
 	InitializeError = errors.New("initialize new telegram bot error")
 )
 
-type TelegramBotConfig struct {
-	Token   string `yaml:"token"`
-	Timeout int    `yaml:"timeout"`
+type TelegramBot struct {
+	l          *zap.Logger
+	passmanCli passmanProto.PassmanServiceClient
+	config     config.TelegramBotConfig
 }
 
-func NewTelegramBot(logger *zap.Logger) *TelegramBot {
-	return &TelegramBot{l: logger}
+func NewTelegramBot(tgbotConfig config.TelegramBotConfig, logger *zap.Logger, passmanCli passmanProto.PassmanServiceClient) *TelegramBot {
+	return &TelegramBot{
+		l:          logger,
+		passmanCli: passmanCli,
+		config:     tgbotConfig,
+	}
 }
 
-func (tg *TelegramBot) Run(token string) error {
-	bot, err := tgbotapi.NewBotAPI(token)
+func (b *TelegramBot) Run() error {
+	bot, err := tgbotapi.NewBotAPI(b.config.Token)
 	if err != nil {
 		return errors.Join(InitializeError, err)
 	}
 
-	tg.l.Info("tg bot authorized", zap.String("tgBotName:", bot.Self.UserName))
+	b.l.Info("b bot authorized", zap.String("tgBotName:", bot.Self.UserName))
 
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	u.Timeout = b.config.Timeout
 
 	updates, err := bot.GetUpdatesChan(u)
 
@@ -59,8 +63,19 @@ func (tg *TelegramBot) Run(token string) error {
 			bot.Send(msg)
 		case getCommand:
 			//reply := handleGetCommand(update.Message, client)
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")
+			credentials, err := b.passmanCli.GetCredentials(context.Background(), &passmanProto.GetReq{
+				Token:       "TODO change to userID",
+				ServiceName: "VK",
+			})
+			msg := tgbotapi.MessageConfig{}
+			if err != nil {
+				b.l.Error("error getting credentials", zap.Error(err))
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "error")
+			}
+
+			msg = tgbotapi.NewMessage(update.Message.Chat.ID, credentials.ServiceName)
 			bot.Send(msg)
+
 		case delCommand:
 			//reply := handleDelCommand(update.Message, client)
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")

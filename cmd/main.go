@@ -2,22 +2,15 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"github.com/Natali-Skv/ProtectMyPassBot/config"
+	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/yaml.v3"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
-	"os"
 )
-
-const (
-	defaultConfigPath = "config/config.yaml"
-)
-
-type Config struct {
-	Bot telegram_bot.TelegramBotConfig `yaml:"tgBot"`
-}
 
 func main() {
 	loggerConfig := zap.NewDevelopmentConfig()
@@ -29,56 +22,43 @@ func main() {
 	defer func(logger *zap.Logger) {
 		err = logger.Sync()
 		if err != nil {
-			log.Fatal(err)
+			logger.Error("logger sync error", zap.Error(err))
 		}
 	}(logger)
 
-	configPath, err := ParseConfigPathFlag()
-	if err != nil {
-		logger.Fatal("bad command line arguments passed", zap.Error(err))
-	}
+	configPath := *flag.String("config", config.TgBotDefaultConfigPath, "path to config file")
+	flag.Parse()
 
-	config, err := ReadConfig(configPath)
+	tgbotConfig := config.BotConfig{}
+	err = config.ReadConfig(configPath, &tgbotConfig)
 	if err != nil {
 		logger.Fatal("reading config error", zap.Error(err))
 	}
 
-	logger.Debug("config", zap.Any("config", config))
+	logger.Debug("config", zap.Any("config", tgbotConfig))
 
-	tgBot := telegram_bot.NewTelegramBot(logger)
-	err = tgBot.Run(config.Bot.Token)
+	passmanGrpcConn, err := grpc.Dial(
+		tgbotConfig.PassmanAddr,
+		// grpc.WithInsecure(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		logger.Fatal("error connecting to grpc passman microservice", zap.Error(err))
+	}
+	defer func(passmanGrpcConn *grpc.ClientConn) {
+		err := passmanGrpcConn.Close()
+		if err != nil {
+			logger.Error("error closing grpc connection to passman microservice", zap.Error(err))
+		}
+	}(passmanGrpcConn)
+
+	passmanCli := passmanProto.NewPassmanServiceClient(passmanGrpcConn)
+
+	tgBot := telegram_bot.NewTelegramBot(tgbotConfig.Bot, logger, passmanCli)
+	err = tgBot.Run()
 	if err != nil {
 		logger.Fatal("running telegram bot error", zap.Error(err))
 	}
-}
-
-func ParseConfigPathFlag() (configPath string, err error) {
-	flag.StringVar(&configPath, "config", defaultConfigPath, "path to config file")
-	flag.Parse()
-
-	s, err := os.Stat(configPath)
-	if err != nil {
-		return "", err
-	}
-	if s.IsDir() {
-		return "", fmt.Errorf("'%s' is a directory, not a normal file", configPath)
-	}
-
-	return configPath, nil
-}
-
-func ReadConfig(configPath string) (config *Config, err error) {
-	configFile, err := os.Open(configPath)
-	if err != nil {
-		return nil, err
-	}
-	defer configFile.Close()
-
-	d := yaml.NewDecoder(configFile)
-	if err := d.Decode(&config); err != nil {
-		return nil, err
-	}
-	return config, nil
 }
 
 //
