@@ -6,21 +6,15 @@ type PassmanUsecase interface {
 	Get(req GetReqU) (GetRespU, error)
 }
 
-type UserID int
-
 type GetReqU struct {
-	UserID  UserID
+	UserID  uint64
 	Service string
 }
 
-type Credentials struct {
+type GetRespU struct {
+	Service  string
 	Login    string
 	Password string
-}
-
-type GetRespU struct {
-	Service     string
-	Credentials []Credentials
 }
 
 var (

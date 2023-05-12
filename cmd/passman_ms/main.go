@@ -5,7 +5,10 @@ import (
 	"github.com/Natali-Skv/ProtectMyPassBot/config"
 	passmanHandler "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/delivery/grpc"
 	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
+	passmahRepository "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/repository"
 	passmahUsecase "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/usecase"
+	tarantoolTool "github.com/Natali-Skv/ProtectMyPassBot/internal/tools/tarantool"
+	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -49,8 +52,21 @@ func main() {
 
 	server := grpc.NewServer()
 
-	usecase := passmahUsecase.PassmanUsecase{}
-	handler := passmanHandler.NewPassmanHandler(&usecase)
+	conn, err := tarantoolTool.NewTarantoolConn(passmanConfig.Tarantool)
+	if err != nil {
+		logger.Fatal("error opening connection to tarantool", zap.Error(err))
+	}
+	defer func(conn *tarantool.Connection) {
+		err := conn.Close()
+		if err != nil {
+			logger.Error("error closing connection to tarantool", zap.Error(err))
+		}
+	}(conn)
+
+	repo := passmahRepository.NewPassmanRepo(logger, conn)
+
+	usecase := passmahUsecase.NewPassmanUsecase(logger, repo)
+	handler := passmanHandler.NewPassmanHandler(logger, usecase)
 
 	passmanProto.RegisterPassmanServiceServer(server, handler)
 

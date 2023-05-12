@@ -25,13 +25,15 @@ type TelegramBot struct {
 	l          *zap.Logger
 	passmanCli passmanProto.PassmanServiceClient
 	config     config.TelegramBotConfig
+	r          TgBotRepository
 }
 
-func NewTelegramBot(tgbotConfig config.TelegramBotConfig, logger *zap.Logger, passmanCli passmanProto.PassmanServiceClient) *TelegramBot {
+func NewTelegramBot(tgbotConfig config.TelegramBotConfig, logger *zap.Logger, passmanCli passmanProto.PassmanServiceClient, r TgBotRepository) *TelegramBot {
 	return &TelegramBot{
 		l:          logger,
 		passmanCli: passmanCli,
 		config:     tgbotConfig,
+		r:          r,
 	}
 }
 
@@ -62,18 +64,35 @@ func (b *TelegramBot) Run() error {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")
 			bot.Send(msg)
 		case getCommand:
-			//reply := handleGetCommand(update.Message, client)
-			credentials, err := b.passmanCli.GetCredentials(context.Background(), &passmanProto.GetReq{
-				Token:       "TODO change to userID",
-				ServiceName: "VK",
-			})
 			msg := tgbotapi.MessageConfig{}
-			if err != nil {
-				b.l.Error("error getting credentials", zap.Error(err))
-				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "error")
-			}
 
-			msg = tgbotapi.NewMessage(update.Message.Chat.ID, credentials.ServiceName)
+			b.l.Debug(update.Message.From.UserName)
+			b.l.Debug("TG ID", zap.Int("ID", update.Message.From.ID))
+
+			userID, err := b.r.GetUserID(update.Message.From.ID)
+
+			if err != nil {
+				b.l.Error("error getting userID by tgID", zap.Error(err))
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "error")
+				bot.Send(msg)
+				break
+				//	TODO возврат сообщения об ошибке
+			}
+			credentials, err := b.passmanCli.GetCredentials(context.TODO(), &passmanProto.GetReq{UserID: userID, ServiceName: "VK"})
+			b.l.Info("passman resp", zap.Any("creds", credentials), zap.Error(err))
+			// TODOсделать пароль и логин удобными для копирования
+			msgText := fmt.Sprintf("Service: `%s` \nLogin: `%s`\nPassword: `%s`", credentials.ServiceName, credentials.Login, credentials.Password)
+			//credentials, err := b.passmanCli.GetCredentials(context.Background(), &passmanProto.GetReq{
+			//	Token:       "TODO change to userID",
+			//	ServiceName: "VK",
+			//})
+			//if err != nil {
+			//	b.l.Error("error getting credentials", zap.Error(err))
+			//	msg = tgbotapi.NewMessage(update.Message.Chat.ID, "error")
+			//}
+
+			msg = tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
+			msg.ParseMode = "Markdown"
 			bot.Send(msg)
 
 		case delCommand:

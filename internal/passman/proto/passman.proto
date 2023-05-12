@@ -4,7 +4,7 @@ option go_package = "./;passman";
 package passman;
 
 message GetReq {
-  string Token = 1;
+  uint64 UserID = 1;
   string ServiceName = 2;
 }
 
@@ -15,7 +15,8 @@ message Credentials {
 
 message ServiceCredentials {
   string ServiceName = 1;
-  repeated Credentials Credentials = 2;
+  string Login = 2;
+  string Password = 3;
 }
 
 service PassmanService {

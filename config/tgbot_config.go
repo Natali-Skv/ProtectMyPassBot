@@ -12,4 +12,5 @@ type TelegramBotConfig struct {
 type BotConfig struct {
 	Bot         TelegramBotConfig `yaml:"tgBot"`
 	PassmanAddr string            `yaml:"passmanAddr"`
+	Tarantool   TarantoolConfig   `yaml:"tarantool"`
 }

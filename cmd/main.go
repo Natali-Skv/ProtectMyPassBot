@@ -5,6 +5,9 @@ import (
 	"github.com/Natali-Skv/ProtectMyPassBot/config"
 	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
+	tgBotRepo "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/repository"
+	tarantoolTool "github.com/Natali-Skv/ProtectMyPassBot/internal/tools/tarantool"
+	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
@@ -54,7 +57,20 @@ func main() {
 
 	passmanCli := passmanProto.NewPassmanServiceClient(passmanGrpcConn)
 
-	tgBot := telegram_bot.NewTelegramBot(tgbotConfig.Bot, logger, passmanCli)
+	conn, err := tarantoolTool.NewTarantoolConn(tgbotConfig.Tarantool)
+	if err != nil {
+		logger.Fatal("error opening connection to tarantool", zap.Error(err))
+	}
+	defer func(conn *tarantool.Connection) {
+		err := conn.Close()
+		if err != nil {
+			logger.Error("error closing connection to tarantool", zap.Error(err))
+		}
+	}(conn)
+
+	tarRepository := tgBotRepo.NewTgBotRepo(logger, conn)
+
+	tgBot := telegram_bot.NewTelegramBot(tgbotConfig.Bot, logger, passmanCli, tarRepository)
 	err = tgBot.Run()
 	if err != nil {
 		logger.Fatal("running telegram bot error", zap.Error(err))
