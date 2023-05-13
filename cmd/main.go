@@ -4,8 +4,9 @@ import (
 	"flag"
 	"github.com/Natali-Skv/ProtectMyPassBot/config"
 	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
+	"github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/delivery"
 	tgBotRepo "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/repository"
+	tgBotUcase "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/usecase"
 	tarantoolTool "github.com/Natali-Skv/ProtectMyPassBot/internal/tools/tarantool"
 	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
@@ -68,9 +69,11 @@ func main() {
 		}
 	}(conn)
 
-	tarRepository := tgBotRepo.NewTgBotRepo(logger, conn)
+	tgbRepo := tgBotRepo.NewTgBotRepo(logger, conn)
 
-	tgBot := telegram_bot.NewTelegramBot(tgbotConfig.Bot, logger, passmanCli, tarRepository)
+	tgbUcase := tgBotUcase.NewTgBotUsecase(logger, tgbRepo, passmanCli)
+
+	tgBot := delivery.NewTelegramBot(tgbotConfig.Bot, logger, tgbUcase)
 	err = tgBot.Run()
 	if err != nil {
 		logger.Fatal("running telegram bot error", zap.Error(err))

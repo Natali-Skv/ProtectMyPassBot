@@ -4,7 +4,7 @@ option go_package = "./;passman";
 package passman;
 
 message GetReq {
-  uint64 UserID = 1;
+  int64 UserID = 1;
   string ServiceName = 2;
 }
 

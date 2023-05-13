@@ -1,13 +1,16 @@
 package passman
 
-import "errors"
+import (
+	"errors"
+	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
+)
 
 type PassmanUsecase interface {
 	Get(req GetReqU) (GetRespU, error)
 }
 
 type GetReqU struct {
-	UserID  uint64
+	UserID  models.UserID
 	Service string
 }
 

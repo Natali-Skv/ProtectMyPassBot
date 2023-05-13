@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/passman"
 	proto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	"go.uber.org/zap"
@@ -24,7 +25,7 @@ func (g *grpcPassmanHandler) GetCredentials(ctx context.Context, req *proto.GetR
 	// go to usecase
 	g.l.Debug("req", zap.Any("user_id", req.UserID), zap.String("servicename", req.ServiceName))
 	resp, err := g.u.Get(passman.GetReqU{
-		UserID:  req.UserID,
+		UserID:  models.UserID(req.UserID),
 		Service: req.ServiceName,
 	})
 	return &proto.ServiceCredentials{ServiceName: resp.Service, Login: resp.Login, Password: resp.Password}, err
