@@ -3,7 +3,6 @@ package repository
 import (
 	"errors"
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
-	tgbot "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
 	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
 )
@@ -34,10 +33,10 @@ func (tr *TgBotRepo) GetUserID(tgID models.TgUserID) (userID models.UserID, err 
 	resultTuple := tgIdTuple{}
 	err = tr.conn.GetTyped(tgIdSpace, primary, []interface{}{tgID}, &resultTuple)
 	if err != nil {
-		return models.EmptyUserID, errors.Join(tgbot.GettingUserIDErr, err)
+		return models.EmptyUserID, errors.Join(models.TgBotRepoErrors.GettingUserIDErr, err)
 	}
 	if !resultTuple.UserID.IsValid() {
-		return models.EmptyUserID, tgbot.NoSuchUserErr
+		return models.EmptyUserID, models.TgBotRepoErrors.NoSuchUserErr
 	}
 	return resultTuple.UserID, nil
 }
@@ -51,9 +50,9 @@ func (tr *TgBotRepo) RegisterUser(tgID models.TgUserID, userID models.UserID) er
 	if resp.Code != tarantool.OkCode {
 		tr.l.Error("error register user in tg_id space", zap.Error(err), zap.Uint32("tarantool response code", resp.Code), zap.Any("insert tuple", insertTuple))
 		if err != nil {
-			return errors.Join(tgbot.RegisterUserErr, err)
+			return errors.Join(models.TgBotRepoErrors.RegisterUserErr, err)
 		}
-		return tgbot.RegisterUserErr
+		return models.TgBotRepoErrors.RegisterUserErr
 	}
 	return nil
 }

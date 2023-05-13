@@ -2,8 +2,7 @@ package repository
 
 import (
 	"errors"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/passman"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
+	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
 )
@@ -14,8 +13,17 @@ const (
 	primary           = "primary"
 )
 
+type userCredsTuple struct {
+	Login    string
+	Password string
+}
+
+func (u userCredsTuple) isEmpty() bool {
+	return u.Login == "" && u.Password == ""
+}
+
 type PassmanRepo struct {
-	l    *zap.Logger // TODO он точно нужен? или все логируется выше
+	l    *zap.Logger
 	conn *tarantool.Connection
 }
 
@@ -26,22 +34,22 @@ func NewPassmanRepo(l *zap.Logger, conn *tarantool.Connection) *PassmanRepo {
 	return &PassmanRepo{l: l, conn: conn}
 }
 
-func (pr *PassmanRepo) Get(req passman.GetReqR) (passman.GetRespR, error) {
-	var queryResult []struct {
-		//Service  string
-		Login    string
-		Password string
-	}
+func (pr *PassmanRepo) Get(req models.GetReqR) (models.GetRespR, error) {
+	var queryResult []userCredsTuple
 
 	pr.l.Debug("req", zap.Any("user_id", req.UserID), zap.String("servicename", req.Service))
 	err := pr.conn.CallTyped(getUserCredesFunc, []interface{}{req.UserID, req.Service}, &queryResult)
 	pr.l.Debug("result", zap.Any("res", queryResult))
 
 	if err != nil {
-		pr.l.Error("error quering user credentials", zap.Error(err))
-		return passman.GetRespR{}, errors.Join(telegram_bot.GettingUserIDErr, err)
+		return models.GetRespR{}, errors.Join(models.PassmanRepoErrors.CallingGetUserCredesDBFuncErr, err)
 	}
-	return passman.GetRespR{
+
+	if queryResult[0].isEmpty() {
+		return models.GetRespR{}, models.PassmanRepoErrors.NoSuchUserOrServiceInDBErr
+	}
+
+	return models.GetRespR{
 		Service:  req.Service,
 		Login:    queryResult[0].Login,
 		Password: queryResult[0].Password,

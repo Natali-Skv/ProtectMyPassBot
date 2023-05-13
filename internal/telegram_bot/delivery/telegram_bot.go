@@ -15,8 +15,7 @@ var (
 )
 
 const (
-	MarkdownMode     = "Markdown"
-	UnknownErrorResp = "Sorry, unknown error occurred, try again later."
+	MarkdownMode = "Markdown"
 )
 
 type TelegramBotHandler struct {
@@ -52,17 +51,17 @@ func (tgb *TelegramBotHandler) Run() error {
 		}
 
 		switch update.Message.Command() {
-		case models.SetCommand.Name:
+		case tgbot.SetCommand.Name:
 			//reply := handleSetCommand(update.Message, client)
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")
 			bot.Send(msg)
-		case models.GetCommand.Name:
+		case tgbot.GetCommand.Name:
 			msg := tgb.getCommand(&update)
 			send, err := bot.Send(msg)
 			if err != nil {
 				tgb.l.Error("error sending message", zap.Error(err), zap.Any("send", send))
 			}
-		case models.DelCommand.Name:
+		case tgbot.DelCommand.Name:
 			//reply := handleDelCommand(update.Message, client)
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")
 			bot.Send(msg)
@@ -78,16 +77,17 @@ func (tgb *TelegramBotHandler) Run() error {
 func (tgb *TelegramBotHandler) getCommand(update *tgbotapi.Update) *tgbotapi.MessageConfig {
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 	var err error
-	msg.Text, err = tgb.u.GetCommand(tgbot.GetCommandReqU{TgID: models.TgUserID(update.Message.From.ID), ArgsString: update.Message.CommandArguments()})
-
-	if err != nil {
-		switch err {
-		case tgbot.WrongArgCountErr:
-			msg.Text = models.GetCommand.Usage
-		default:
-			tgb.l.Error("error handling command /get", zap.Error(err))
-			msg.Text = UnknownErrorResp
-		}
+	respU, err := tgb.u.GetCommand(&models.GetCommandReqU{TgID: models.TgUserID(update.Message.From.ID), ArgsString: update.Message.CommandArguments()})
+	switch {
+	case err == nil:
+		msg.Text = fmt.Sprintf(tgbot.GetCommand.RespFmtString, respU.Service, respU.Login, respU.Password)
+	case errors.Is(err, models.TgBotUsecaseErrors.WrongArgCountErr):
+		msg.Text = tgbot.GetCommand.Usage
+	case errors.Is(err, models.TgBotUsecaseErrors.NoSuchCredsErr):
+		msg.Text = tgbot.NoSuchCredsMsg
+	default:
+		tgb.l.Error("error handling command /get", zap.Error(err))
+		msg.Text = tgbot.UnknownErrorResp
 	}
 	msg.ParseMode = MarkdownMode
 	return &msg

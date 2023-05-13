@@ -101,7 +101,7 @@ func main() {
 //		return fmt.Sprintf("Error setting password: %v", err)
 //	}
 //
-//	return "Password saved"
+//	return "password saved"
 //}
 //
 //func handleGetCommand(message *tgbotapi.Message, client *tarantool.Connection) string {
@@ -118,7 +118,7 @@ func main() {
 //	}
 //
 //	if len(res.Data) == 0 {
-//		return "Password not found"
+//		return "password not found"
 //	}
 //
 //	tuple, ok := res.Data[0].([]interface{})
@@ -136,7 +136,7 @@ func main() {
 //		return "Error getting password"
 //	}
 //
-//	return fmt.Sprintf("Login: %s\nPassword: %s", login, password)
+//	return fmt.Sprintf("login: %s\nPassword: %s", login, password)
 //}
 //
 //func handleDelCommand(message *tgbotapi.Message, client *tarantool.Connection) string {
@@ -153,7 +153,7 @@ func main() {
 //	}
 //
 //	if len(res.Data) == 0 {
-//		return "Password not found"
+//		return "password not found"
 //	}
 //
 //	tuple := res.Data[0].([]interface{})
@@ -162,7 +162,7 @@ func main() {
 //		return fmt.Sprintf("Error deleting password: %v", err)
 //	}
 //
-//	return "Password deleted"
+//	return "password deleted"
 //}
 //
 ////func handleDelCommand(message *tgbotapi.Message, client *tarantool.Connection) string {
@@ -180,7 +180,7 @@ func main() {
 ////	}
 ////
 ////	if len(resp.Tuples()) == 0 {
-////		return "Password not found"
+////		return "password not found"
 ////	}
 ////
 ////	tuple := resp.Tuples()[0]
@@ -191,7 +191,7 @@ func main() {
 ////		return fmt.Sprintf("Error deleting password: %v", err)
 ////	}
 ////
-////	return "Password deleted"
+////	return "password deleted"
 ////}
 //
 //func deleteMessageAfterDelay(bot *tgbotapi.BotAPI, message *tgbotapi.Message, delay time.Duration) {

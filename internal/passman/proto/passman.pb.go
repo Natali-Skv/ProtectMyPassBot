@@ -68,8 +68,8 @@ func (m *GetReq) GetServiceName() string {
 }
 
 type Credentials struct {
-	Login                string   `protobuf:"bytes,1,opt,name=Login,proto3" json:"Login,omitempty"`
-	Password             string   `protobuf:"bytes,2,opt,name=Password,proto3" json:"Password,omitempty"`
+	Login                string   `protobuf:"bytes,1,opt,name=login,proto3" json:"login,omitempty"`
+	Password             string   `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -116,8 +116,8 @@ func (m *Credentials) GetPassword() string {
 
 type ServiceCredentials struct {
 	ServiceName          string   `protobuf:"bytes,1,opt,name=ServiceName,proto3" json:"ServiceName,omitempty"`
-	Login                string   `protobuf:"bytes,2,opt,name=Login,proto3" json:"Login,omitempty"`
-	Password             string   `protobuf:"bytes,3,opt,name=Password,proto3" json:"Password,omitempty"`
+	Login                string   `protobuf:"bytes,2,opt,name=login,proto3" json:"login,omitempty"`
+	Password             string   `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`

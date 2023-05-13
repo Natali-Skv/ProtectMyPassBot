@@ -2,23 +2,8 @@ package models
 
 import "errors"
 
-type Command struct {
-	Name          string
-	Usage         string
-	ArgumentCount int
-	RespFmtString string
-}
-
-var (
-	SetCommand                      = Command{Name: "set", Usage: "Usage: `/set <service> <login> <password>`", ArgumentCount: 3}
-	DelCommand                      = Command{Name: "del", Usage: "Usage: `/del <service>`", ArgumentCount: 1}
-	GetCommand                      = Command{Name: "get", Usage: "Usage: `/get <service>`", ArgumentCount: 1, RespFmtString: "Service: `%s` \nLogin: `%s`\nPassword: `%s`"}
-	GetCommandServiceArgumentNumber = 0
-)
-
 type TgUserID int
 
-var EmptyTgUserID TgUserID = 0
 var InvalidTgUserIDErr = errors.New("invalid telegram id")
 
 func (id TgUserID) Int() int {
@@ -31,4 +16,39 @@ func (id TgUserID) Int64() int64 {
 
 func (id TgUserID) IsValid() bool {
 	return id > 0
+}
+
+type GetCommandReqU struct {
+	TgID       TgUserID
+	ArgsString string
+}
+
+type GetCommandRespU struct {
+	Login    string
+	Password string
+	Service  string
+}
+
+var TgBotUsecaseErrors = struct {
+	WrongArgCountErr       error
+	GetingUserIDUnknownErr error
+	NoSuchUserErr          error
+	GettingUserCredsErr    error
+	NoSuchCredsErr         error
+}{
+	WrongArgCountErr:       errors.New("wrong number of command arguments"),
+	GetingUserIDUnknownErr: errors.New("unknown error getting userID"),
+	NoSuchUserErr:          errors.New("no such user"),
+	GettingUserCredsErr:    errors.New("error getting user creds with passman"),
+	NoSuchCredsErr:         errors.New("no credentials for such service"),
+}
+
+var TgBotRepoErrors = struct {
+	NoSuchUserErr    error
+	GettingUserIDErr error
+	RegisterUserErr  error
+}{
+	NoSuchUserErr:    errors.New("no such user"),
+	GettingUserIDErr: errors.New("error getting userID by tg-ID"),
+	RegisterUserErr:  errors.New("error registering user in tg_id space"),
 }

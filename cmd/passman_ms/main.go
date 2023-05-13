@@ -16,10 +16,6 @@ import (
 	"net"
 )
 
-const (
-	defaultConfigPath = "config/config.yaml"
-)
-
 func main() {
 	loggerConfig := zap.NewDevelopmentConfig()
 	loggerConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
@@ -73,6 +69,6 @@ func main() {
 	err = server.Serve(lis)
 
 	if err != nil {
-		log.Fatalln("cant serve auth-microservice", err)
+		log.Fatalln("cant serve passman microservice", err)
 	}
 }
