@@ -5,8 +5,9 @@ const (
 )
 
 type TelegramBotConfig struct {
-	Token   string `yaml:"token"`
-	Timeout int    `yaml:"timeout"`
+	Token                  string `yaml:"token"`
+	Timeout                int    `yaml:"timeout"`
+	GetCommandDeleteTimout int    `yaml:"getCommandDeleteTimout"`
 }
 
 type BotConfig struct {

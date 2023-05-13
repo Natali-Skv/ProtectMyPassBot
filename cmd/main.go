@@ -7,6 +7,7 @@ import (
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/delivery"
 	tgBotRepo "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/repository"
 	tgBotUcase "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/usecase"
+	"github.com/Natali-Skv/ProtectMyPassBot/internal/tools/delay_task_manager/delay_task_manager"
 	tarantoolTool "github.com/Natali-Skv/ProtectMyPassBot/internal/tools/tarantool"
 	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
@@ -73,7 +74,8 @@ func main() {
 
 	tgbUcase := tgBotUcase.NewTgBotUsecase(logger, tgbRepo, passmanCli)
 
-	tgBot := delivery.NewTelegramBot(tgbotConfig.Bot, logger, tgbUcase)
+	delayTaskManager := delay_task_manager.NewDelayTaskManager(logger)
+	tgBot := delivery.NewTelegramBot(tgbotConfig.Bot, logger, tgbUcase, delayTaskManager)
 	err = tgBot.Run()
 	if err != nil {
 		logger.Fatal("running telegram bot error", zap.Error(err))
