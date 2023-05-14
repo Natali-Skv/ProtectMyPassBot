@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
+	m "github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
 )
@@ -44,7 +44,7 @@ func NewPassmanRepo(l *zap.Logger, conn *tarantool.Connection) *PassmanRepo {
 	return &PassmanRepo{l: l, conn: conn}
 }
 
-func (pr *PassmanRepo) Get(req models.GetReqR) (models.GetRespR, error) {
+func (pr *PassmanRepo) Get(req m.GetReqR) (m.GetRespR, error) {
 	var queryResult []UserCredsTuple
 
 	pr.l.Debug("req", zap.Any("user_id", req.UserID), zap.String("servicename", req.Service))
@@ -52,34 +52,34 @@ func (pr *PassmanRepo) Get(req models.GetReqR) (models.GetRespR, error) {
 	pr.l.Debug("result", zap.Any("res", queryResult))
 
 	if err != nil {
-		return models.GetRespR{}, errors.Join(models.PassmanRepoErrors.CallingGetUserCredesDBFuncErr, err)
+		return m.GetRespR{}, errors.Join(m.PassmanRepoErrors.CallingGetUserCredesDBFuncErr, err)
 	}
 
 	if queryResult[0].isEmpty() {
-		return models.GetRespR{}, models.PassmanRepoErrors.NoSuchUserOrServiceInDBErr
+		return m.GetRespR{}, m.PassmanRepoErrors.NoSuchUserOrServiceInDBErr
 	}
 
-	return models.GetRespR{
+	return m.GetRespR{
 		Service:  req.Service,
 		Login:    queryResult[0].Login,
 		Password: queryResult[0].Password,
 	}, nil
 }
 
-func (pr *PassmanRepo) Register() (models.UserID, error) {
+func (pr *PassmanRepo) Register() (m.UserID, error) {
 	var userIDSequenceResp []struct {
-		UserID models.UserID
+		UserID m.UserID
 	}
 	err := pr.conn.CallTyped(addUser, []interface{}{map[interface{}]interface{}{}}, &userIDSequenceResp)
 	if err != nil {
 		pr.l.Debug("error inserting next userIDSequenceResp", zap.Error(err))
-		return models.EmptyUserID, errors.Join(models.PassmanRepoErrors.AddNewUserToUserCredsErr, err)
+		return m.EmptyUserID, errors.Join(m.PassmanRepoErrors.AddNewUserToUserCredsErr, err)
 	}
 
 	return userIDSequenceResp[0].UserID, nil
 }
 
-func (pr *PassmanRepo) AddCredentials(req models.AddCredsReqR) error {
+func (pr *PassmanRepo) AddCredentials(req m.AddCredsReqR) error {
 	var addCredsResp []struct {
 		Error string
 		Code  int64
@@ -87,20 +87,20 @@ func (pr *PassmanRepo) AddCredentials(req models.AddCredsReqR) error {
 	err := pr.conn.CallTyped(addUserService, []interface{}{req.UserID, req.Data.Service, req.Data.Login, req.Data.Password}, &addCredsResp)
 	if err != nil {
 		pr.l.Debug("error adding user creds", zap.Error(err), zap.Any("resp", addCredsResp))
-		return errors.Join(models.PassmanRepoErrors.AddUserCredsError, err)
+		return errors.Join(m.PassmanRepoErrors.AddUserCredsError, err)
 	}
 	switch addCredsResp[0].Code {
 	case addUserServiceCodeOK:
 		return nil
 	case addUserServiceCodeNoSuchUser:
-		return errors.Join(models.PassmanRepoErrors.NoSuchUserErr, errors.New(addCredsResp[0].Error))
+		return errors.Join(m.PassmanRepoErrors.NoSuchUserErr, errors.New(addCredsResp[0].Error))
 	default:
 		pr.l.Debug("unknown code in return value by add user creds tarantool func", zap.Error(err), zap.Any("resp", addCredsResp))
-		return errors.Join(models.PassmanRepoErrors.AddUserCredsError, errors.New(addCredsResp[0].Error))
+		return errors.Join(m.PassmanRepoErrors.AddUserCredsError, errors.New(addCredsResp[0].Error))
 	}
 }
 
-func (pr *PassmanRepo) DeleteCreds(req models.DeleteCredsReqR) error {
+func (pr *PassmanRepo) DeleteCreds(req m.DeleteCredsReqR) error {
 	var delCredsResp []struct {
 		Error string
 		Code  int64
@@ -108,17 +108,17 @@ func (pr *PassmanRepo) DeleteCreds(req models.DeleteCredsReqR) error {
 	err := pr.conn.CallTyped(deleteUserService, []interface{}{req.UserID, req.Service}, &delCredsResp)
 	if err != nil {
 		pr.l.Debug("error deleting user creds ", zap.Error(err), zap.Any("resp", delCredsResp))
-		return errors.Join(models.PassmanRepoErrors.DeleteUserCredsErr, err)
+		return errors.Join(m.PassmanRepoErrors.DeleteUserCredsErr, err)
 	}
 	switch delCredsResp[0].Code {
 	case addUserServiceCodeOK:
 		return nil
 	case deleteUserServiceCodeNoSuchService:
-		return errors.Join(models.PassmanRepoErrors.NoSuchServiceErr, errors.New(delCredsResp[0].Error))
+		return errors.Join(m.PassmanRepoErrors.NoSuchServiceErr, errors.New(delCredsResp[0].Error))
 	case deleteUserServiceCodeNoSuchUser:
-		return errors.Join(models.PassmanRepoErrors.NoSuchUserErr, errors.New(delCredsResp[0].Error))
+		return errors.Join(m.PassmanRepoErrors.NoSuchUserErr, errors.New(delCredsResp[0].Error))
 	default:
 		pr.l.Debug("unknown code in return value by delete user creds tarantool func", zap.Error(err), zap.Any("resp", delCredsResp))
-		return errors.Join(models.PassmanRepoErrors.DeleteUserCredsErr, errors.New(delCredsResp[0].Error))
+		return errors.Join(m.PassmanRepoErrors.DeleteUserCredsErr, errors.New(delCredsResp[0].Error))
 	}
 }

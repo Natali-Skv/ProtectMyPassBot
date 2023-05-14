@@ -65,14 +65,14 @@ func main() {
 
 	userID, err := repo.Register()
 	logger.Debug("register", zap.Error(err), zap.Int("useID", userID.Int()))
-	//err = repo.AddCredentials(models.AddCredsReqR{UserID: models.UserID(1), Data: models.AddCredsData{
+	//err = repo.AddCredentials(m.AddCredsReqR{UserID: m.UserID(1), Data: m.AddCredsData{
 	//	Service:  "GG",
 	//	Login:    "loginGG",
 	//	Password: "passwordGG",
 	//}})
 	//logger.Debug("add creds", zap.Error(err))
 	//
-	//err = repo.DeleteCreds(models.DeleteCredsReqR{UserID: models.UserID(1), Service: "TG"})
+	//err = repo.DeleteCreds(m.DeleteCredsReqR{UserID: m.UserID(1), Service: "TG"})
 	//logger.Debug("delete creds", zap.Error(err))
 
 	usecase := passmahUsecase.NewPassmanUsecase(logger, repo)

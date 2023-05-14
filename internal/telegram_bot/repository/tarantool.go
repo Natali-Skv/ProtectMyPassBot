@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
+	m "github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
 )
@@ -13,8 +13,8 @@ const (
 )
 
 type tgIdTuple struct {
-	TgID   models.TgUserID
-	UserID models.UserID
+	TgID   m.TgUserID
+	UserID m.UserID
 }
 
 type TgBotRepo struct {
@@ -29,30 +29,29 @@ func NewTgBotRepo(l *zap.Logger, conn *tarantool.Connection) *TgBotRepo {
 	return &TgBotRepo{l: l, conn: conn}
 }
 
-func (tr *TgBotRepo) GetUserID(tgID models.TgUserID) (userID models.UserID, err error) {
+func (tr *TgBotRepo) GetUserID(tgID m.TgUserID) (userID m.UserID, err error) {
 	resultTuple := tgIdTuple{}
 	err = tr.conn.GetTyped(tgIdSpace, primary, []interface{}{tgID}, &resultTuple)
 	if err != nil {
-		return models.EmptyUserID, errors.Join(models.TgBotRepoErrors.GettingUserIDErr, err)
+		return m.EmptyUserID, errors.Join(m.TgBotRepoErrors.GettingUserIDErr, err)
 	}
 	if !resultTuple.UserID.IsValid() {
-		return models.EmptyUserID, models.TgBotRepoErrors.NoSuchUserErr
+		return m.EmptyUserID, m.TgBotRepoErrors.NoSuchUserErr
 	}
 	return resultTuple.UserID, nil
 }
 
-func (tr *TgBotRepo) RegisterUser(tgID models.TgUserID, userID models.UserID) error {
+func (tr *TgBotRepo) RegisterUser(tgID m.TgUserID, userID m.UserID) error {
 	if !tgID.IsValid() {
-		return models.InvalidTgUserIDErr
+		return m.InvalidTgUserIDErr
 	}
-	insertTuple := tgIdTuple{TgID: tgID, UserID: userID}
-	resp, err := tr.conn.Insert(tgIdSpace, &insertTuple)
+	resp, err := tr.conn.Insert(tgIdSpace, []interface{}{tgID, userID})
 	if resp.Code != tarantool.OkCode {
-		tr.l.Error("error register user in tg_id space", zap.Error(err), zap.Uint32("tarantool response code", resp.Code), zap.Any("insert tuple", insertTuple))
+		tr.l.Error("error register user in tg_id space", zap.Error(err), zap.Uint32("tarantool response code", resp.Code), zap.Int("tgID", tgID.Int()))
 		if err != nil {
-			return errors.Join(models.TgBotRepoErrors.RegisterUserErr, err)
+			return errors.Join(m.TgBotRepoErrors.RegisterUserErr, err)
 		}
-		return models.TgBotRepoErrors.RegisterUserErr
+		return m.TgBotRepoErrors.RegisterUserErr
 	}
 	return nil
 }

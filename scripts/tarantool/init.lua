@@ -70,7 +70,7 @@ if not user_credentials_space then
     box.schema.func.create('remove_user_service', {language = 'LUA'})
 
     function add_user(services)
-        local user_id = user_id_sequence:next()
+        local user_id = box.sequence.user_id_sequence:next()
         box.space.user_credentials:insert{user_id, services}
         return user_id
     end

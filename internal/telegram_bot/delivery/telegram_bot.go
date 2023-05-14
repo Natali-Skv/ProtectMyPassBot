@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Natali-Skv/ProtectMyPassBot/config"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
+	m "github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	tgbot "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/tools/delay_task_manager"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -23,7 +23,7 @@ const (
 
 type TelegramBotHandler struct {
 	l      *zap.Logger
-	u      tgbot.TgBotUsecase
+	u      m.TgBotUsecase
 	config config.TelegramBotConfig
 	dtm    delay_task_manager.DelayTaskManager
 }
@@ -40,7 +40,7 @@ func (md *messageDeleter) Process() {
 	}
 }
 
-func NewTelegramBot(tgbotConfig config.TelegramBotConfig, logger *zap.Logger, u tgbot.TgBotUsecase, dtm delay_task_manager.DelayTaskManager) *TelegramBotHandler {
+func NewTelegramBot(tgbotConfig config.TelegramBotConfig, logger *zap.Logger, u m.TgBotUsecase, dtm delay_task_manager.DelayTaskManager) *TelegramBotHandler {
 	go dtm.Run(context.Background(), time.Second*time.Duration(tgbotConfig.GetCommandDeleteTimout))
 	return &TelegramBotHandler{
 		l:      logger,
@@ -77,11 +77,16 @@ func (tgb *TelegramBotHandler) Run() error {
 				tgb.l.Error("error sending message", zap.Error(err), zap.Any("send", send))
 			}
 		case tgbot.SetCommand.Name:
-			// get userID by TgID
-			// register user if not registered
-			// insert credentials
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")
-			bot.Send(msg)
+			msg := tgb.setCommand(&update)
+			send, err := bot.Send(msg)
+			if err != nil {
+				tgb.l.Error("error sending message", zap.Error(err), zap.Any("send", send))
+			}
+			tgb.dtm.AddTask(&messageDeleter{
+				deleteMsg: tgbotapi.NewDeleteMessage(update.Message.Chat.ID, update.Message.MessageID),
+				l:         tgb.l,
+				bot:       bot,
+			})
 		case tgbot.GetCommand.Name:
 			msg, ok := tgb.getCommand(&update)
 			send, err := bot.Send(msg)
@@ -112,21 +117,37 @@ func (tgb *TelegramBotHandler) Run() error {
 func (tgb *TelegramBotHandler) getCommand(update *tgbotapi.Update) (msg tgbotapi.MessageConfig, ok bool) {
 	msg = tgbotapi.NewMessage(update.Message.Chat.ID, "")
 	var err error
-	respU, err := tgb.u.GetCommand(&models.GetCommandReqU{TgID: models.TgUserID(update.Message.From.ID), ArgsString: update.Message.CommandArguments()})
+	respU, err := tgb.u.GetCommand(&m.GetCommandReqU{TgID: m.TgUserID(update.Message.From.ID), ArgsString: update.Message.CommandArguments()})
 	switch {
 	case err == nil:
 		ok = true
 		msg.Text = fmt.Sprintf(tgbot.GetCommand.RespFmtString, respU.Service, respU.Login, respU.Password)
-	case errors.Is(err, models.TgBotUsecaseErrors.WrongArgCountErr):
+	case errors.Is(err, m.TgBotUsecaseErrors.WrongArgCountErr):
 		msg.Text = tgbot.GetCommand.Usage
-	case errors.Is(err, models.TgBotUsecaseErrors.NoSuchCredsErr):
+	case errors.Is(err, m.TgBotUsecaseErrors.NoSuchCredsErr):
 		msg.Text = tgbot.NoSuchCredsMsg
-	case errors.Is(err, models.TgBotUsecaseErrors.NoSuchUserErr):
+	case errors.Is(err, m.TgBotUsecaseErrors.NoSuchUserErr):
 		msg.Text = tgbot.NoSuchUserMsg
 	default:
-		tgb.l.Error("error handling command /get", zap.Error(err))
+		tgb.l.Error("error handling command /get", zap.Error(err), zap.Any("upd", update))
 		msg.Text = tgbot.UnknownErrorResp
 	}
 	msg.ParseMode = MarkdownMode
 	return msg, ok
+}
+
+func (tgb *TelegramBotHandler) setCommand(update *tgbotapi.Update) (msg tgbotapi.MessageConfig) {
+	msg = tgbotapi.NewMessage(update.Message.Chat.ID, "")
+	serviceName, err := tgb.u.SetCommand(&m.SetCommandReqU{TgID: m.TgUserID(update.Message.From.ID), ArgsString: update.Message.CommandArguments()})
+	switch {
+	case err == nil:
+		msg.Text = fmt.Sprintf(tgbot.SetCommand.RespFmtString, serviceName)
+	case errors.Is(err, m.TgBotUsecaseErrors.WrongArgCountErr):
+		msg.Text = tgbot.SetCommand.Usage
+	default:
+		tgb.l.Error("error handling command /set", zap.Error(err), zap.Any("upd", update))
+		msg.Text = tgbot.UnknownErrorResp
+	}
+	msg.ParseMode = MarkdownMode
+	return msg
 }

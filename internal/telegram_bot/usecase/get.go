@@ -3,38 +3,38 @@ package usecase
 import (
 	"context"
 	"errors"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
+	m "github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	tgbot "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
 	"google.golang.org/grpc/status"
 	"strings"
 )
 
-func (u *TgBotUsecase) GetCommand(req *models.GetCommandReqU) (resp *models.GetCommandRespU, err error) {
+func (u *TgBotUsecase) GetCommand(req *m.GetCommandReqU) (resp *m.GetCommandRespU, err error) {
 	args := strings.Fields(req.ArgsString)
 	if len(args) != tgbot.GetCommand.ArgumentCount {
-		return nil, models.TgBotUsecaseErrors.WrongArgCountErr
+		return nil, m.TgBotUsecaseErrors.WrongArgCountErr
 	}
 
 	userID, err := u.r.GetUserID(req.TgID)
 
 	if err != nil {
 		switch {
-		case errors.Is(err, models.TgBotRepoErrors.NoSuchUserErr):
-			return nil, errors.Join(models.TgBotUsecaseErrors.NoSuchUserErr, err)
+		case errors.Is(err, m.TgBotRepoErrors.NoSuchUserErr):
+			return nil, errors.Join(m.TgBotUsecaseErrors.NoSuchUserErr, err)
 		default:
-			return nil, errors.Join(models.TgBotUsecaseErrors.GetingUserIDUnknownErr, err)
+			return nil, errors.Join(m.TgBotUsecaseErrors.GetingUserIDUnknownErr, err)
 		}
 	}
 
-	credentials, err := u.passmanCli.GetCredentials(context.Background(), &passmanProto.GetReq{UserID: userID.Int64(), ServiceName: args[tgbot.GetCommandServiceArgumentNumber]})
+	credentials, err := u.passmanCli.GetCredentials(context.Background(), &passmanProto.GetReq{UserID: userID.Int64(), ServiceName: args[tgbot.GetCommandServiceArgIdx]})
 	switch {
 	case err == nil:
-		return &models.GetCommandRespU{Service: credentials.ServiceName, Login: credentials.Login, Password: credentials.Password}, nil
-	case int(status.Code(err)) == models.PassmanHandlerErrors.NoSuchUserOrServiceErr.Code:
+		return &m.GetCommandRespU{Service: credentials.ServiceName, Login: credentials.Login, Password: credentials.Password}, nil
+	case int(status.Code(err)) == m.PassmanHandlerErrors.NoSuchUserOrServiceErr.Code:
 		u.l.Debug("37")
-		return nil, errors.Join(models.TgBotUsecaseErrors.NoSuchCredsErr)
+		return nil, errors.Join(m.TgBotUsecaseErrors.NoSuchCredsErr)
 	default:
-		return nil, errors.Join(models.TgBotUsecaseErrors.GettingUserCredsErr, err)
+		return nil, errors.Join(m.TgBotUsecaseErrors.GettingUserCredsErr, err)
 	}
 }
