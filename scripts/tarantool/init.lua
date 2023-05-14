@@ -68,6 +68,14 @@ if not user_credentials_space then
     end
 
     box.schema.func.create('remove_user_service', {language = 'LUA'})
+
+    function add_user(services)
+        local user_id = user_id_sequence:next()
+        box.space.user_credentials:insert{user_id, services}
+        return user_id
+    end
+
+    box.schema.func.create('add_user', {language = 'LUA'})
 end
 
 local tg_id_space = box.space.tg_id
@@ -89,6 +97,7 @@ box.schema.user.grant('passman', 'read,write,execute', 'space', 'user_credential
 box.schema.user.grant('passman', 'execute', 'function', 'get_user_creds')
 box.schema.user.grant('passman', 'execute', 'function', 'add_user_service')
 box.schema.user.grant('passman', 'execute', 'function', 'remove_user_service')
+box.schema.user.grant('passman', 'execute', 'function', 'add_user')
 box.schema.user.grant('passman', 'read,write,USAGE', 'sequence', 'user_id_sequence')
 box.schema.user.grant('passman', 'execute', 'universe')
 

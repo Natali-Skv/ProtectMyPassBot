@@ -20,11 +20,11 @@ message ServiceCredentials {
   string Password = 3;
 }
 
-message RegisterReq {
+message RegisterResp {
   int64 UserID = 1;
 }
 
 service PassmanService {
   rpc GetCredentials(GetReq) returns (ServiceCredentials) {}
-  rpc RegisterUser(google.protobuf.Empty) returns (RegisterReq) {}
+  rpc RegisterUser(google.protobuf.Empty) returns (RegisterResp) {}
 }

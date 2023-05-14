@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"github.com/Natali-Skv/ProtectMyPassBot/config"
-	"github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	passmanHandler "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/delivery/grpc"
 	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	passmahRepository "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/repository"
@@ -63,15 +62,18 @@ func main() {
 	repo := passmahRepository.NewPassmanRepo(logger, conn)
 
 	// TODO delete
-	err = repo.AddCredentials(models.AddCredsReqR{UserID: models.UserID(1), Data: models.AddCredsData{
-		Service:  "GG",
-		Login:    "loginGG",
-		Password: "passwordGG",
-	}})
-	logger.Debug("add creds", zap.Error(err))
 
-	err = repo.DeleteCredentials(models.DeleteCredsReqR{UserID: models.UserID(1), Service: "TG"})
-	logger.Debug("delete creds", zap.Error(err))
+	userID, err := repo.Register()
+	logger.Debug("register", zap.Error(err), zap.Int("useID", userID.Int()))
+	//err = repo.AddCredentials(models.AddCredsReqR{UserID: models.UserID(1), Data: models.AddCredsData{
+	//	Service:  "GG",
+	//	Login:    "loginGG",
+	//	Password: "passwordGG",
+	//}})
+	//logger.Debug("add creds", zap.Error(err))
+	//
+	//err = repo.DeleteCreds(models.DeleteCredsReqR{UserID: models.UserID(1), Service: "TG"})
+	//logger.Debug("delete creds", zap.Error(err))
 
 	usecase := passmahUsecase.NewPassmanUsecase(logger, repo)
 	handler := passmanHandler.NewPassmanHandler(logger, usecase)

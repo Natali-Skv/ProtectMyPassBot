@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	userCredsSpace     = "user_credentials"
-	getUserCredesFunc  = "get_user_creds"
-	primary            = "primary"
-	userIDSequenceNext = "user_id_sequence:next"
-	addUserService     = "add_user_service"
-	deleteUserService  = "remove_user_service"
+	userCredsSpace    = "user_credentials"
+	getUserCredesFunc = "get_user_creds"
+	primary           = "primary"
+	addUser           = "add_user"
+	addUserService    = "add_user_service"
+	deleteUserService = "remove_user_service"
 
 	addUserServiceCodeOK         = 0
 	addUserServiceCodeNoSuchUser = 1
@@ -70,22 +70,13 @@ func (pr *PassmanRepo) Register() (models.UserID, error) {
 	var userIDSequenceResp []struct {
 		UserID models.UserID
 	}
-	err := pr.conn.CallTyped(userIDSequenceNext, []interface{}{}, &userIDSequenceResp)
+	err := pr.conn.CallTyped(addUser, []interface{}{map[interface{}]interface{}{}}, &userIDSequenceResp)
 	if err != nil {
-		pr.l.Debug("error getting nex userIDSequenceResp", zap.Error(err))
-		return models.EmptyUserID, errors.Join(models.PassmanRepoErrors.GettingNextSequenceUserIDErr, err)
-	}
-	userID := userIDSequenceResp[0].UserID
-
-	resp, err := pr.conn.Insert(userCredsSpace, []interface{}{
-		userID,
-		map[interface{}]interface{}{},
-	})
-	if resp.Code != tarantool.OkCode {
 		pr.l.Debug("error inserting next userIDSequenceResp", zap.Error(err))
-		return models.EmptyUserID, errors.Join(models.PassmanRepoErrors.InsertingNewUserToUserCredsErr, err)
+		return models.EmptyUserID, errors.Join(models.PassmanRepoErrors.AddNewUserToUserCredsErr, err)
 	}
-	return userID, nil
+
+	return userIDSequenceResp[0].UserID, nil
 }
 
 func (pr *PassmanRepo) AddCredentials(req models.AddCredsReqR) error {
@@ -109,7 +100,7 @@ func (pr *PassmanRepo) AddCredentials(req models.AddCredsReqR) error {
 	}
 }
 
-func (pr *PassmanRepo) DeleteCredentials(req models.DeleteCredsReqR) error {
+func (pr *PassmanRepo) DeleteCreds(req models.DeleteCredsReqR) error {
 	var delCredsResp []struct {
 		Error string
 		Code  int64

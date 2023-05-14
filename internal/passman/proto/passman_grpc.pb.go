@@ -29,7 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PassmanServiceClient interface {
 	GetCredentials(ctx context.Context, in *GetReq, opts ...grpc.CallOption) (*ServiceCredentials, error)
-	RegisterUser(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*RegisterReq, error)
+	RegisterUser(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*RegisterResp, error)
 }
 
 type passmanServiceClient struct {
@@ -49,8 +49,8 @@ func (c *passmanServiceClient) GetCredentials(ctx context.Context, in *GetReq, o
 	return out, nil
 }
 
-func (c *passmanServiceClient) RegisterUser(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*RegisterReq, error) {
-	out := new(RegisterReq)
+func (c *passmanServiceClient) RegisterUser(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*RegisterResp, error) {
+	out := new(RegisterResp)
 	err := c.cc.Invoke(ctx, PassmanService_RegisterUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (c *passmanServiceClient) RegisterUser(ctx context.Context, in *empty.Empty
 // for forward compatibility
 type PassmanServiceServer interface {
 	GetCredentials(context.Context, *GetReq) (*ServiceCredentials, error)
-	RegisterUser(context.Context, *empty.Empty) (*RegisterReq, error)
+	RegisterUser(context.Context, *empty.Empty) (*RegisterResp, error)
 	mustEmbedUnimplementedPassmanServiceServer()
 }
 
@@ -74,7 +74,7 @@ type UnimplementedPassmanServiceServer struct {
 func (UnimplementedPassmanServiceServer) GetCredentials(context.Context, *GetReq) (*ServiceCredentials, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCredentials not implemented")
 }
-func (UnimplementedPassmanServiceServer) RegisterUser(context.Context, *empty.Empty) (*RegisterReq, error) {
+func (UnimplementedPassmanServiceServer) RegisterUser(context.Context, *empty.Empty) (*RegisterResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterUser not implemented")
 }
 func (UnimplementedPassmanServiceServer) mustEmbedUnimplementedPassmanServiceServer() {}

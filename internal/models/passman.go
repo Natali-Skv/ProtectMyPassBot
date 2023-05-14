@@ -9,10 +9,10 @@ var PassmanRepoErrors = struct {
 	NoSuchUserOrServiceInDBErr    error
 	CallingGetUserCredesDBFuncErr error
 
-	GettingNextSequenceUserIDErr   error
-	InsertingNewUserToUserCredsErr error
-	AddUserCredsError              error
-	NoSuchUserErr                  error
+	GettingNextSequenceUserIDErr error
+	AddNewUserToUserCredsErr     error
+	AddUserCredsError            error
+	NoSuchUserErr                error
 
 	DeleteUserCredsErr error
 	NoSuchServiceErr   error
@@ -20,10 +20,10 @@ var PassmanRepoErrors = struct {
 	NoSuchUserOrServiceInDBErr:    errors.New("no such user or user service in db error"),
 	CallingGetUserCredesDBFuncErr: errors.New("error calling tarantool getUserCredesFunc error"),
 
-	GettingNextSequenceUserIDErr:   errors.New("error getting next sequence userID error"),
-	InsertingNewUserToUserCredsErr: errors.New("error inserting new user to user_credentials error"),
-	AddUserCredsError:              errors.New("error adding user service credentials to db"),
-	NoSuchUserErr:                  errors.New("no such user error"),
+	GettingNextSequenceUserIDErr: errors.New("error getting next sequence userID error"),
+	AddNewUserToUserCredsErr:     errors.New("error inserting new user to user_credentials error"),
+	AddUserCredsError:            errors.New("error adding user service credentials to db"),
+	NoSuchUserErr:                errors.New("no such user error"),
 
 	DeleteUserCredsErr: errors.New("error deleting user service credentials"),
 	NoSuchServiceErr:   errors.New("no such service credentials"),
@@ -32,9 +32,21 @@ var PassmanRepoErrors = struct {
 var PassmanUsecaseErrors = struct {
 	UnknownGettingUserCredsErr error
 	NoSuchUserOrServiceErr     error
+
+	NoSuchUserErr            error
+	AddNewUserToUserCredsErr error
+	SetUserCredsErr          error
+	NoSuchServiceErr         error
+	DeleteUserCredsErr       error
 }{
 	UnknownGettingUserCredsErr: errors.New("unknown error getting user service credentials"),
 	NoSuchUserOrServiceErr:     errors.New("no such user or user service error"),
+
+	AddNewUserToUserCredsErr: errors.New("error inserting new user to user_credentials error"),
+	NoSuchUserErr:            errors.New("no such user error"),
+	SetUserCredsErr:          errors.New("unknown error setting credentials for user"),
+	NoSuchServiceErr:         errors.New("no such service credentials"),
+	DeleteUserCredsErr:       errors.New("error deleting user service credentials"),
 }
 
 type GrpcError struct {
@@ -45,9 +57,11 @@ type GrpcError struct {
 var PassmanHandlerErrors = struct {
 	UnknownGettingUserCredsErr GrpcError
 	NoSuchUserOrServiceErr     GrpcError
+	RegisterUserErr            GrpcError
 }{
 	UnknownGettingUserCredsErr: GrpcError{Error: errors.New("unknown error getting user service credentials"), Code: 1},
 	NoSuchUserOrServiceErr:     GrpcError{Error: errors.New("no such user or user service error"), Code: 2},
+	RegisterUserErr:            GrpcError{Error: errors.New("register user error"), Code: 3},
 }
 
 type UserID int
@@ -100,4 +114,26 @@ type AddCredsReqR struct {
 type DeleteCredsReqR struct {
 	UserID  UserID
 	Service string
+}
+
+type SetReqU struct {
+	UserID UserID
+	Data   AddCredsData
+}
+
+type DeleteCredsReqU struct {
+	UserID  UserID
+	Service string
+}
+
+type PassmanRepository interface {
+	Get(req GetReqR) (GetRespR, error)
+	Register() (UserID, error)
+	DeleteCreds(req DeleteCredsReqR) error
+	AddCredentials(req AddCredsReqR) error
+}
+
+type PassmanUsecase interface {
+	Get(req GetReqU) (GetRespU, error)
+	Register() (UserID, error)
 }
