@@ -19,16 +19,8 @@ if not user_credentials_space then
 
     user_id_sequence = box.schema.sequence.create('user_id_sequence')
     box.space.user_credentials:insert{box.sequence.user_id_sequence:next(), {['TG'] = {['Login'] = 'natali_telegram', ['Password'] = 'tg_passw'}, ['VK'] = {['Login'] = 'natali', ['Password'] = 'password'}}}
+    --box.space.user_credentials:insert{box.sequence.user_id_sequence:next()}
     --box.space.user_credentials.index.primary:get(1).services['TG']
-
-    --local get_user_credentials = function (user_id, service_key)
-    --    local user_credentials_space = box.space.user_credentials
-    --    local user_credentials = user_credentials_space.index.primary:get(user_id)
-    --    if user_credentials and user_credentials.services[service_key] then
-    --        return user_credentials.services[service_key]['Login'], user_credentials.services[service_key]['Password']
-    --    end
-    --    return nil, nil
-    --end
 
     function get_user_creds (user_id, service_key)
         local user_credentials_space = box.space.user_credentials
@@ -44,8 +36,38 @@ if not user_credentials_space then
 
     box.schema.func.create('get_user_creds', {language = 'LUA'})
 
+    function add_user_service(user_id, service, login, password)
+        local tuple = box.space.user_credentials.index.primary:get{user_id}
+        if tuple == nil then
+            return box.tuple.new({"User not found", 1})
+        end
 
-    box.schema.func.create('get_user_credentials', {if_not_exists = true, language = 'LUA', body = get_user_credentials})
+        local services = tuple[2]
+        services[service] = {Login = login, Password = password}
+
+        box.space.user_credentials:update(user_id, {{'=', 2, services}})
+        return box.tuple.new({nil, 0})
+    end
+
+    box.schema.func.create('add_user_service', {language = 'LUA'})
+
+    function remove_user_service(user_id, service)
+        local tuple = box.space.user_credentials.index.primary:get{user_id}
+        if tuple == nil then
+            return box.tuple.new({"User not found", 2})
+        end
+
+        local services = tuple[2]
+        if services[service] == nil then
+            return box.tuple.new({"Service not found", 1})
+        end
+
+        services[service] = nil
+        box.space.user_credentials:update(user_id, {{'=', 2, services}})
+        return box.tuple.new({nil, 0})
+    end
+
+    box.schema.func.create('remove_user_service', {language = 'LUA'})
 end
 
 local tg_id_space = box.space.tg_id
@@ -65,6 +87,10 @@ end
 box.schema.user.create('passman', {password='passw0rd', if_not_exists=true})
 box.schema.user.grant('passman', 'read,write,execute', 'space', 'user_credentials')
 box.schema.user.grant('passman', 'execute', 'function', 'get_user_creds')
+box.schema.user.grant('passman', 'execute', 'function', 'add_user_service')
+box.schema.user.grant('passman', 'execute', 'function', 'remove_user_service')
+box.schema.user.grant('passman', 'read,write,USAGE', 'sequence', 'user_id_sequence')
+box.schema.user.grant('passman', 'execute', 'universe')
 
 -- Создаём пользователя для подключения telegram-bot
 box.schema.user.create('tgbot', {password='passw0rd', if_not_exists=true})

@@ -1,4 +1,5 @@
 syntax = "proto3";
+import "google/protobuf/empty.proto";
 
 option go_package = "./;passman";
 package passman;
@@ -19,6 +20,11 @@ message ServiceCredentials {
   string Password = 3;
 }
 
+message RegisterReq {
+  int64 UserID = 1;
+}
+
 service PassmanService {
   rpc GetCredentials(GetReq) returns (ServiceCredentials) {}
+  rpc RegisterUser(google.protobuf.Empty) returns (RegisterReq) {}
 }

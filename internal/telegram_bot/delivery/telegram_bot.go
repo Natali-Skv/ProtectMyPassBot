@@ -69,8 +69,17 @@ func (tgb *TelegramBotHandler) Run() error {
 		}
 
 		switch update.Message.Command() {
+		case tgbot.HelpCommand.Name, tgbot.StartCommand.Name:
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, tgbot.HelpCommand.RespFmtString)
+			msg.ParseMode = MarkdownMode
+			send, err := bot.Send(msg)
+			if err != nil {
+				tgb.l.Error("error sending message", zap.Error(err), zap.Any("send", send))
+			}
 		case tgbot.SetCommand.Name:
-			//reply := handleSetCommand(update.Message, client)
+			// get userID by TgID
+			// register user if not registered
+			// insert credentials
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")
 			bot.Send(msg)
 		case tgbot.GetCommand.Name:
@@ -112,6 +121,8 @@ func (tgb *TelegramBotHandler) getCommand(update *tgbotapi.Update) (msg tgbotapi
 		msg.Text = tgbot.GetCommand.Usage
 	case errors.Is(err, models.TgBotUsecaseErrors.NoSuchCredsErr):
 		msg.Text = tgbot.NoSuchCredsMsg
+	case errors.Is(err, models.TgBotUsecaseErrors.NoSuchUserErr):
+		msg.Text = tgbot.NoSuchUserMsg
 	default:
 		tgb.l.Error("error handling command /get", zap.Error(err))
 		msg.Text = tgbot.UnknownErrorResp

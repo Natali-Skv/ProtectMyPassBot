@@ -21,10 +21,7 @@ func (u *TgBotUsecase) GetCommand(req *models.GetCommandReqU) (resp *models.GetC
 	if err != nil {
 		switch {
 		case errors.Is(err, models.TgBotRepoErrors.NoSuchUserErr):
-			userID, err = u.RegisterUser(req.TgID)
-			if err != nil {
-				return nil, errors.Join(models.TgBotUsecaseErrors.NoSuchUserErr, err)
-			}
+			return nil, errors.Join(models.TgBotUsecaseErrors.NoSuchUserErr, err)
 		default:
 			return nil, errors.Join(models.TgBotUsecaseErrors.GetingUserIDUnknownErr, err)
 		}
@@ -40,15 +37,4 @@ func (u *TgBotUsecase) GetCommand(req *models.GetCommandReqU) (resp *models.GetC
 	default:
 		return nil, errors.Join(models.TgBotUsecaseErrors.GettingUserCredsErr, err)
 	}
-}
-
-func (u *TgBotUsecase) RegisterUser(tgID models.TgUserID) (userID models.UserID, err error) {
-	if !tgID.IsValid() {
-		return models.EmptyUserID, models.InvalidTgUserIDErr
-	}
-	//TODO
-	// register user in passman returning userid
-
-	//u.r.RegisterUser()
-	return models.EmptyUserID, nil
 }

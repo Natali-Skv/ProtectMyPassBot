@@ -8,9 +8,25 @@ var InvalidUserIDErr = errors.New("invalid user id")
 var PassmanRepoErrors = struct {
 	NoSuchUserOrServiceInDBErr    error
 	CallingGetUserCredesDBFuncErr error
+
+	GettingNextSequenceUserIDErr   error
+	InsertingNewUserToUserCredsErr error
+	AddUserCredsError              error
+	NoSuchUserErr                  error
+
+	DeleteUserCredsErr error
+	NoSuchServiceErr   error
 }{
-	NoSuchUserOrServiceInDBErr:    errors.New("No such user or user service in db error"),
+	NoSuchUserOrServiceInDBErr:    errors.New("no such user or user service in db error"),
 	CallingGetUserCredesDBFuncErr: errors.New("error calling tarantool getUserCredesFunc error"),
+
+	GettingNextSequenceUserIDErr:   errors.New("error getting next sequence userID error"),
+	InsertingNewUserToUserCredsErr: errors.New("error inserting new user to user_credentials error"),
+	AddUserCredsError:              errors.New("error adding user service credentials to db"),
+	NoSuchUserErr:                  errors.New("no such user error"),
+
+	DeleteUserCredsErr: errors.New("error deleting user service credentials"),
+	NoSuchServiceErr:   errors.New("no such service credentials"),
 }
 
 var PassmanUsecaseErrors = struct {
@@ -18,7 +34,7 @@ var PassmanUsecaseErrors = struct {
 	NoSuchUserOrServiceErr     error
 }{
 	UnknownGettingUserCredsErr: errors.New("unknown error getting user service credentials"),
-	NoSuchUserOrServiceErr:     errors.New("No such user or user service error"),
+	NoSuchUserOrServiceErr:     errors.New("no such user or user service error"),
 }
 
 type GrpcError struct {
@@ -31,7 +47,7 @@ var PassmanHandlerErrors = struct {
 	NoSuchUserOrServiceErr     GrpcError
 }{
 	UnknownGettingUserCredsErr: GrpcError{Error: errors.New("unknown error getting user service credentials"), Code: 1},
-	NoSuchUserOrServiceErr:     GrpcError{Error: errors.New("No such user or user service error"), Code: 2},
+	NoSuchUserOrServiceErr:     GrpcError{Error: errors.New("no such user or user service error"), Code: 2},
 }
 
 type UserID int
@@ -68,4 +84,20 @@ type GetRespU struct {
 	Service  string
 	Login    string
 	Password string
+}
+
+type AddCredsData struct {
+	Service  string
+	Login    string
+	Password string
+}
+
+type AddCredsReqR struct {
+	UserID UserID
+	Data   AddCredsData
+}
+
+type DeleteCredsReqR struct {
+	UserID  UserID
+	Service string
 }
