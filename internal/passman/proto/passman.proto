@@ -24,7 +24,19 @@ message RegisterResp {
   int64 UserID = 1;
 }
 
+message SetReq {
+  int64 UserID = 1;
+  ServiceCredentials Data = 2;
+}
+
+message DelReq {
+  int64 UserID = 1;
+  string ServiceName = 2;
+}
+
 service PassmanService {
   rpc GetCredentials(GetReq) returns (ServiceCredentials) {}
   rpc RegisterUser(google.protobuf.Empty) returns (RegisterResp) {}
+  rpc SetCredentials(SetReq) returns (google.protobuf.Empty) {}
+  rpc DelCredentials(DelReq) returns (google.protobuf.Empty) {}
 }

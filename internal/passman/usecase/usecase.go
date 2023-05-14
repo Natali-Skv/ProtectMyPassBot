@@ -48,7 +48,7 @@ func (u *PassmanUsecase) Register() (models.UserID, error) {
 	}
 }
 
-func (u *PassmanUsecase) Set(req *models.SetReqU) error {
+func (u *PassmanUsecase) Set(req models.SetReqU) error {
 	err := u.r.AddCredentials(models.AddCredsReqR{
 		UserID: req.UserID,
 		Data:   models.AddCredsData{Service: req.Data.Service, Login: req.Data.Login, Password: req.Data.Password},
@@ -63,7 +63,7 @@ func (u *PassmanUsecase) Set(req *models.SetReqU) error {
 	}
 }
 
-func (u *PassmanUsecase) Del(req *models.DeleteCredsReqU) error {
+func (u *PassmanUsecase) Del(req models.DeleteCredsReqU) error {
 	err := u.r.DeleteCreds(models.DeleteCredsReqR{UserID: req.UserID, Service: req.Service})
 	switch {
 	case err == nil:

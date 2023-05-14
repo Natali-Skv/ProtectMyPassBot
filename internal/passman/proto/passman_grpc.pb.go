@@ -22,6 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	PassmanService_GetCredentials_FullMethodName = "/passman.PassmanService/GetCredentials"
 	PassmanService_RegisterUser_FullMethodName   = "/passman.PassmanService/RegisterUser"
+	PassmanService_SetCredentials_FullMethodName = "/passman.PassmanService/SetCredentials"
+	PassmanService_DelCredentials_FullMethodName = "/passman.PassmanService/DelCredentials"
 )
 
 // PassmanServiceClient is the client API for PassmanService service.
@@ -30,6 +32,8 @@ const (
 type PassmanServiceClient interface {
 	GetCredentials(ctx context.Context, in *GetReq, opts ...grpc.CallOption) (*ServiceCredentials, error)
 	RegisterUser(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*RegisterResp, error)
+	SetCredentials(ctx context.Context, in *SetReq, opts ...grpc.CallOption) (*empty.Empty, error)
+	DelCredentials(ctx context.Context, in *DelReq, opts ...grpc.CallOption) (*empty.Empty, error)
 }
 
 type passmanServiceClient struct {
@@ -58,12 +62,32 @@ func (c *passmanServiceClient) RegisterUser(ctx context.Context, in *empty.Empty
 	return out, nil
 }
 
+func (c *passmanServiceClient) SetCredentials(ctx context.Context, in *SetReq, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, PassmanService_SetCredentials_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *passmanServiceClient) DelCredentials(ctx context.Context, in *DelReq, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, PassmanService_DelCredentials_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PassmanServiceServer is the server API for PassmanService service.
 // All implementations must embed UnimplementedPassmanServiceServer
 // for forward compatibility
 type PassmanServiceServer interface {
 	GetCredentials(context.Context, *GetReq) (*ServiceCredentials, error)
 	RegisterUser(context.Context, *empty.Empty) (*RegisterResp, error)
+	SetCredentials(context.Context, *SetReq) (*empty.Empty, error)
+	DelCredentials(context.Context, *DelReq) (*empty.Empty, error)
 	mustEmbedUnimplementedPassmanServiceServer()
 }
 
@@ -76,6 +100,12 @@ func (UnimplementedPassmanServiceServer) GetCredentials(context.Context, *GetReq
 }
 func (UnimplementedPassmanServiceServer) RegisterUser(context.Context, *empty.Empty) (*RegisterResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterUser not implemented")
+}
+func (UnimplementedPassmanServiceServer) SetCredentials(context.Context, *SetReq) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetCredentials not implemented")
+}
+func (UnimplementedPassmanServiceServer) DelCredentials(context.Context, *DelReq) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelCredentials not implemented")
 }
 func (UnimplementedPassmanServiceServer) mustEmbedUnimplementedPassmanServiceServer() {}
 
@@ -126,6 +156,42 @@ func _PassmanService_RegisterUser_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PassmanService_SetCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassmanServiceServer).SetCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassmanService_SetCredentials_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassmanServiceServer).SetCredentials(ctx, req.(*SetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PassmanService_DelCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PassmanServiceServer).DelCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PassmanService_DelCredentials_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PassmanServiceServer).DelCredentials(ctx, req.(*DelReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PassmanService_ServiceDesc is the grpc.ServiceDesc for PassmanService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -140,6 +206,14 @@ var PassmanService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RegisterUser",
 			Handler:    _PassmanService_RegisterUser_Handler,
+		},
+		{
+			MethodName: "SetCredentials",
+			Handler:    _PassmanService_SetCredentials_Handler,
+		},
+		{
+			MethodName: "DelCredentials",
+			Handler:    _PassmanService_DelCredentials_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

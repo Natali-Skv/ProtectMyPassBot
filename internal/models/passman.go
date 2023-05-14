@@ -58,10 +58,21 @@ var PassmanHandlerErrors = struct {
 	UnknownGettingUserCredsErr GrpcError
 	NoSuchUserOrServiceErr     GrpcError
 	RegisterUserErr            GrpcError
+
+	NoSuchUserErr    GrpcError
+	NoSuchServiceErr GrpcError
+	SetUserCredsErr  GrpcError
+	DelUserCredsErr  GrpcError
 }{
 	UnknownGettingUserCredsErr: GrpcError{Error: errors.New("unknown error getting user service credentials"), Code: 1},
 	NoSuchUserOrServiceErr:     GrpcError{Error: errors.New("no such user or user service error"), Code: 2},
 	RegisterUserErr:            GrpcError{Error: errors.New("register user error"), Code: 3},
+
+	NoSuchUserErr:    GrpcError{Error: errors.New("no such user error"), Code: 4},
+	NoSuchServiceErr: GrpcError{Error: errors.New("no such user service error"), Code: 5},
+
+	SetUserCredsErr: GrpcError{Error: errors.New("unknown error setting credentials for user"), Code: 6},
+	DelUserCredsErr: GrpcError{Error: errors.New("unknown error deleting credentials for user"), Code: 7},
 }
 
 type UserID int
@@ -136,4 +147,6 @@ type PassmanRepository interface {
 type PassmanUsecase interface {
 	Get(req GetReqU) (GetRespU, error)
 	Register() (UserID, error)
+	Set(req SetReqU) error
+	Del(req DeleteCredsReqU) error
 }

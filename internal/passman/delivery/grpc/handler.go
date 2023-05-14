@@ -50,3 +50,32 @@ func (h *PassmanHandler) Register(ctx context.Context) (*proto.RegisterResp, err
 		return nil, status.Error(codes.Code(models.PassmanHandlerErrors.RegisterUserErr.Code), errors.Join(models.PassmanHandlerErrors.RegisterUserErr.Error, err).Error())
 	}
 }
+
+func (h *PassmanHandler) SetCredentials(ctx context.Context, req *proto.SetReq) error {
+	err := h.u.Set(models.SetReqU{
+		UserID: models.UserID(req.UserID),
+		Data:   models.AddCredsData{Login: req.Data.Login, Password: req.Data.Password, Service: req.Data.ServiceName},
+	})
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, models.PassmanUsecaseErrors.NoSuchUserErr):
+		return status.Error(codes.Code(models.PassmanHandlerErrors.NoSuchUserErr.Code), errors.Join(models.PassmanHandlerErrors.NoSuchUserErr.Error, err).Error())
+	default:
+		return status.Error(codes.Code(models.PassmanHandlerErrors.SetUserCredsErr.Code), errors.Join(models.PassmanHandlerErrors.SetUserCredsErr.Error, err).Error())
+	}
+}
+
+func (h *PassmanHandler) DelCredentials(ctx context.Context, req *proto.DelReq) error {
+	err := h.u.Del(models.DeleteCredsReqU{UserID: models.UserID(req.UserID), Service: req.ServiceName})
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, models.PassmanUsecaseErrors.NoSuchUserErr):
+		return status.Error(codes.Code(models.PassmanHandlerErrors.NoSuchUserErr.Code), errors.Join(models.PassmanHandlerErrors.NoSuchUserErr.Error, err).Error())
+	case errors.Is(err, models.PassmanUsecaseErrors.NoSuchServiceErr):
+		return status.Error(codes.Code(models.PassmanHandlerErrors.NoSuchServiceErr.Code), errors.Join(models.PassmanHandlerErrors.NoSuchServiceErr.Error, err).Error())
+	default:
+		return status.Error(codes.Code(models.PassmanHandlerErrors.DelUserCredsErr.Code), errors.Join(models.PassmanHandlerErrors.DelUserCredsErr.Error, err).Error())
+	}
+}
