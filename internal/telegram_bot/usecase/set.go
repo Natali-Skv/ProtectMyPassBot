@@ -10,20 +10,6 @@ import (
 	"strings"
 )
 
-func (u *TgBotUsecase) RegisterUser(tgID m.TgUserID) (userID m.UserID, err error) {
-	if !tgID.IsValid() {
-		return m.EmptyUserID, m.InvalidTgUserIDErr
-	}
-
-	//u.passmanCli.
-
-	//TODO
-	// register user in passman returning userid
-
-	//u.r.RegisterUser()
-	return m.EmptyUserID, nil
-}
-
 func (u *TgBotUsecase) SetCommand(req *m.SetCommandReqU) (serviceName string, err error) {
 	args := strings.Fields(req.ArgsString)
 	if len(args) != tgbot.SetCommand.ArgumentCount {

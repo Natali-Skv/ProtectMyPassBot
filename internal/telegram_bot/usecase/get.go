@@ -32,7 +32,6 @@ func (u *TgBotUsecase) GetCommand(req *m.GetCommandReqU) (resp *m.GetCommandResp
 	case err == nil:
 		return &m.GetCommandRespU{Service: credentials.ServiceName, Login: credentials.Login, Password: credentials.Password}, nil
 	case int(status.Code(err)) == m.PassmanHandlerErrors.NoSuchUserOrServiceErr.Code:
-		u.l.Debug("37")
 		return nil, errors.Join(m.TgBotUsecaseErrors.NoSuchCredsErr)
 	default:
 		return nil, errors.Join(m.TgBotUsecaseErrors.GettingUserCredsErr, err)

@@ -39,8 +39,6 @@ func main() {
 		logger.Fatal("reading config error", zap.Error(err))
 	}
 
-	logger.Debug("passman microservice config", zap.Any("config", passmanConfig))
-
 	lis, err := net.Listen("tcp", passmanConfig.BindAddr)
 	if err != nil {
 		logger.Fatal("can't listen port", zap.Error(err))
@@ -60,25 +58,12 @@ func main() {
 	}(conn)
 
 	repo := passmahRepository.NewPassmanRepo(logger, conn)
-
-	// TODO delete
-
-	userID, err := repo.Register()
-	logger.Debug("register", zap.Error(err), zap.Int("useID", userID.Int()))
-	//err = repo.AddCredentials(m.AddCredsReqR{UserID: m.UserID(1), Data: m.AddCredsData{
-	//	Service:  "GG",
-	//	Login:    "loginGG",
-	//	Password: "passwordGG",
-	//}})
-	//logger.Debug("add creds", zap.Error(err))
-	//
-	//err = repo.DeleteCreds(m.DeleteCredsReqR{UserID: m.UserID(1), Service: "TG"})
-	//logger.Debug("delete creds", zap.Error(err))
-
 	usecase := passmahUsecase.NewPassmanUsecase(logger, repo)
 	handler := passmanHandler.NewPassmanHandler(logger, usecase)
 
 	passmanProto.RegisterPassmanServiceServer(server, handler)
+
+	logger.Info("passman microservice is starting")
 
 	err = server.Serve(lis)
 

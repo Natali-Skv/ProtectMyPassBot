@@ -16,7 +16,6 @@ func NewPassmanUsecase(l *zap.Logger, r m.PassmanRepository) *PassmanUsecase {
 }
 
 func (u *PassmanUsecase) Get(req m.GetReqU) (m.GetRespU, error) {
-	u.l.Debug("req", zap.Any("user_id", req.UserID), zap.String("servicename", req.Service))
 	resp, err := u.r.Get(m.GetReqR{
 		UserID:  req.UserID,
 		Service: req.Service,

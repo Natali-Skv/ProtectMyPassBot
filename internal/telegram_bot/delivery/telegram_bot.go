@@ -102,13 +102,18 @@ func (tgb *TelegramBotHandler) Run() error {
 			}
 
 		case tgbot.DelCommand.Name:
-			//reply := handleDelCommand(update.Message, client)
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "ok")
-			bot.Send(msg)
+			msg := tgb.delCommand(&update)
+			send, err := bot.Send(msg)
+			if err != nil {
+				tgb.l.Error("error sending message", zap.Error(err), zap.Any("send", send))
+			}
 		default:
-			fmt.Println(update.Message.Command())
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Unknown command")
-			bot.Send(msg)
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, tgbot.HelpCommand.RespFmtString)
+			msg.ParseMode = MarkdownMode
+			send, err := bot.Send(msg)
+			if err != nil {
+				tgb.l.Error("error sending message", zap.Error(err), zap.Any("send", send))
+			}
 		}
 	}
 	return nil
@@ -146,6 +151,27 @@ func (tgb *TelegramBotHandler) setCommand(update *tgbotapi.Update) (msg tgbotapi
 		msg.Text = tgbot.SetCommand.Usage
 	default:
 		tgb.l.Error("error handling command /set", zap.Error(err), zap.Any("upd", update))
+		msg.Text = tgbot.UnknownErrorResp
+	}
+	msg.ParseMode = MarkdownMode
+	return msg
+}
+
+func (tgb *TelegramBotHandler) delCommand(update *tgbotapi.Update) (msg tgbotapi.MessageConfig) {
+	msg = tgbotapi.NewMessage(update.Message.Chat.ID, "")
+	var err error
+	serviceName, err := tgb.u.DelCommand(&m.DelCommandReqU{TgID: m.TgUserID(update.Message.From.ID), ArgsString: update.Message.CommandArguments()})
+	switch {
+	case err == nil:
+		msg.Text = fmt.Sprintf(tgbot.DelCommand.RespFmtString, serviceName)
+	case errors.Is(err, m.TgBotUsecaseErrors.WrongArgCountErr):
+		msg.Text = tgbot.DelCommand.Usage
+	case errors.Is(err, m.TgBotUsecaseErrors.NoSuchCredsErr):
+		msg.Text = tgbot.NoSuchCredsMsg
+	case errors.Is(err, m.TgBotUsecaseErrors.NoSuchUserErr):
+		msg.Text = tgbot.NoSuchUserMsg
+	default:
+		tgb.l.Error("error handling command /get", zap.Error(err), zap.Any("upd", update))
 		msg.Text = tgbot.UnknownErrorResp
 	}
 	msg.ParseMode = MarkdownMode
