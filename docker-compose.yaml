@@ -1,0 +1,33 @@
+version: '3'
+services:
+
+  tarantool:
+    image: tarantool/tarantool:2.8.0
+    command: tarantool init.lua
+    volumes:
+      - $PWD/tarantool:/opt/tarantool:ro
+    ports:
+      - "3301:3301"
+    environment:
+      TARANTOOL_USER_NAME: main
+      TARANTOOL_USER_PASSWORD: passw0rd
+
+  tgbot:
+    image: tgbot
+    build:
+      context: .
+      dockerfile: docker/tgbot.Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - tarantool
+
+  passman:
+    image: passman
+    build:
+      context: .
+      dockerfile: docker/passman.Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - tarantool

@@ -1,4 +1,4 @@
-box.cfg({listen="127.0.0.1:3301"})
+box.cfg({listen="0.0.0.0:3301"})
 
 local user_credentials_space = box.space.user_credentials
 if not user_credentials_space then
@@ -18,9 +18,6 @@ if not user_credentials_space then
     })
 
     user_id_sequence = box.schema.sequence.create('user_id_sequence')
-    box.space.user_credentials:insert{box.sequence.user_id_sequence:next(), {['TG'] = {['Login'] = 'natali_telegram', ['Password'] = 'tg_passw'}, ['VK'] = {['Login'] = 'natali', ['Password'] = 'password'}}}
-    --box.space.user_credentials:insert{box.sequence.user_id_sequence:next()}
-    --box.space.user_credentials.index.primary:get(1).services['TG']
 
     function get_user_creds (user_id, service_key)
         local user_credentials_space = box.space.user_credentials
@@ -93,15 +90,14 @@ end
 
 -- Создаём пользователя для подключения микросервиса passman
 box.schema.user.create('passman', {password='passw0rd', if_not_exists=true})
-box.schema.user.grant('passman', 'read,write,execute', 'space', 'user_credentials')
-box.schema.user.grant('passman', 'execute', 'function', 'get_user_creds')
-box.schema.user.grant('passman', 'execute', 'function', 'add_user_service')
-box.schema.user.grant('passman', 'execute', 'function', 'remove_user_service')
-box.schema.user.grant('passman', 'execute', 'function', 'add_user')
-box.schema.user.grant('passman', 'read,write,USAGE', 'sequence', 'user_id_sequence')
-box.schema.user.grant('passman', 'execute', 'universe')
+box.schema.user.grant('passman', 'read,write,execute', 'space', 'user_credentials',{if_not_exists=true})
+box.schema.user.grant('passman', 'execute', 'function', 'get_user_creds',{if_not_exists=true})
+box.schema.user.grant('passman', 'execute', 'function', 'add_user_service',{if_not_exists=true})
+box.schema.user.grant('passman', 'execute', 'function', 'remove_user_service',{if_not_exists=true})
+box.schema.user.grant('passman', 'execute', 'function', 'add_user',{if_not_exists=true})
+box.schema.user.grant('passman', 'read,write,USAGE', 'sequence', 'user_id_sequence',{if_not_exists=true})
+box.schema.user.grant('passman', 'execute', 'universe',nil,{if_not_exists=true})
 
 -- Создаём пользователя для подключения telegram-bot
 box.schema.user.create('tgbot', {password='passw0rd', if_not_exists=true})
-box.schema.user.grant('tgbot', 'read,write,execute', 'space', 'tg_id')
---require('console').start() os.exit()
+box.schema.user.grant('tgbot', 'read,write,execute', 'space', 'tg_id', {if_not_exists=true})

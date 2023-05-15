@@ -1,0 +1,8 @@
+bindAddr: :8080
+tarantool:
+  addr: tarantool:3301
+  user: passman
+  password: passw0rd
+  timeout: 500
+  reconnect: 1
+  maxReconnects: 3

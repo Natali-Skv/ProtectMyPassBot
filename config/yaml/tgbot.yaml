@@ -1,0 +1,12 @@
+tgBot:
+  token: <YOUR_TG_BOT_TOKEN>
+  getCommandDeleteTimout: 10
+  timeout: 60
+passmanAddr: passman:8080
+tarantool:
+  addr: tarantool:3301
+  user: tgbot
+  password: passw0rd
+  timeout: 500
+  reconnect: 1
+  maxReconnects: 3

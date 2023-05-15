@@ -1,7 +1,7 @@
 package config
 
 const (
-	PassmanDefaultConfigPath = "config/yaml/passman.yaml"
+	PassmanDefaultConfigPath = "/home/passman.yaml"
 )
 
 type PassmanConfig struct {

@@ -1,7 +1,7 @@
 package config
 
 const (
-	TgBotDefaultConfigPath = "config/yaml/tgbot.yaml"
+	TgBotDefaultConfigPath = "/home/tgbot.yaml"
 )
 
 type TelegramBotConfig struct {
