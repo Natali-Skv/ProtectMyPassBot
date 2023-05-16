@@ -1,4 +1,20 @@
-# ProtectMyPassBot [@ProtectMyPassBot](https://t.me/ProtectMyPassBot)
+# Telegram-бот [@ProtectMyPassBot](https://t.me/ProtectMyPassBot)
+
+Мы каждый день пользуемся большим количеством разных сервисов и для многих из них, требуются логин и пароль. А наш мозг отказывается запомнить их все...
+
+Telegram бот, который обладает функционалом персонального хранилища паролей является одним из решений этой проблемы.
+
+## Поддержаны следующие команды:
+- `/help` - выводит команды, которые понимает бот
+- `/set <service> <login> <password>` - добавляет логин и пароль к сервису
+- `/get <service>` - получает логин и пароль по названию сервиса
+- `/del <service>` - удаляет значения для сервиса
+
+## Пользовательский сценарий:
+*Через 15 секунд после отправки бот автоматически удаляет запросы на `/set <service> <login> <password>` и ответы на запросы `/get <service>` чтобы в истории сообщений нельзя было найти пароли и логины от сервисов.*
+
+https://github.com/Natali-Skv/ProtectMyPassBot/assets/71991158/115e6322-5b69-4ab0-8967-fe3cdfa643ad
+
 
 ## Стек технологий
 - **Go**
@@ -6,7 +22,5 @@
 - **Tarantool + Lua**
 - **Docker**
 - **Docker-Compose**
+- **GitHub Actions**
 - **Clean arch**
-
-https://github.com/Natali-Skv/ProtectMyPassBot/assets/71991158/115e6322-5b69-4ab0-8967-fe3cdfa643ad
-

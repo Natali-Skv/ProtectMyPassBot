@@ -22,4 +22,4 @@ COPY --from=0 /app/config/yaml/tgbot.yaml /home
 EXPOSE 8081
 
 CMD tgbot -config=/home/tgbot.yaml
-CMD ["tgbot", "--config=/app/config/yaml/tgbot.yaml"]
+CMD ["tgbot", "--config=/home/tgbot.yaml"]

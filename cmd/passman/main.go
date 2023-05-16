@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/Natali-Skv/ProtectMyPassBot/config"
+	config2 "github.com/Natali-Skv/ProtectMyPassBot/internal/config"
 	passmanHandler "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/delivery/grpc"
 	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	passmahRepository "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/repository"
@@ -30,11 +30,11 @@ func main() {
 		}
 	}(logger)
 
-	configPath := *flag.String("config", config.PassmanDefaultConfigPath, "path to config file")
+	configPath := flag.String("config", config2.PassmanDefaultConfigPath, "path to config file")
 	flag.Parse()
 
-	passmanConfig := config.PassmanConfig{}
-	err = config.ReadConfig(configPath, &passmanConfig)
+	passmanConfig := config2.PassmanConfig{}
+	err = config2.ReadConfig(*configPath, &passmanConfig)
 	if err != nil {
 		logger.Fatal("reading config error", zap.Error(err))
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Natali-Skv/ProtectMyPassBot/config"
+	"github.com/Natali-Skv/ProtectMyPassBot/internal/config"
 	m "github.com/Natali-Skv/ProtectMyPassBot/internal/models"
 	tgbot "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot"
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/tools/delay_task_manager"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/Natali-Skv/ProtectMyPassBot/config"
+	config2 "github.com/Natali-Skv/ProtectMyPassBot/internal/config"
 	passmanProto "github.com/Natali-Skv/ProtectMyPassBot/internal/passman/proto"
 	"github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/delivery"
 	tgBotRepo "github.com/Natali-Skv/ProtectMyPassBot/internal/telegram_bot/repository"
@@ -31,11 +31,11 @@ func main() {
 		}
 	}(logger)
 
-	configPath := *flag.String("config", config.TgBotDefaultConfigPath, "path to config file")
+	configPath := flag.String("config", config2.TgBotDefaultConfigPath, "path to config file")
 	flag.Parse()
 
-	tgbotConfig := config.BotConfig{}
-	err = config.ReadConfig(configPath, &tgbotConfig)
+	tgbotConfig := config2.BotConfig{}
+	err = config2.ReadConfig(*configPath, &tgbotConfig)
 	if err != nil {
 		logger.Fatal("reading config error", zap.Error(err))
 	}

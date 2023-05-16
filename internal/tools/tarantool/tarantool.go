@@ -2,7 +2,7 @@ package tarantool
 
 import (
 	"errors"
-	"github.com/Natali-Skv/ProtectMyPassBot/config"
+	"github.com/Natali-Skv/ProtectMyPassBot/internal/config"
 	"github.com/tarantool/go-tarantool"
 	"time"
 )
