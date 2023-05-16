@@ -1,0 +1,27 @@
+name: Delivery
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: delivery and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          envs: GITHUB_SHA
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_DIRECTORY }}
+            git checkout master;
+            git pull;
+            docker-compose down;
+            docker-compose build;
+            docker-compose up -d;
+            docker system prune --all --force;
