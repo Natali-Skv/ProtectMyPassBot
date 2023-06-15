@@ -1,4 +1,4 @@
-# Telegram-бот [@ProtectMyPassBot](https://t.me/ProtectMyPassBot)
+# Telegram-бот @ProtectMyPassBot
 
 Мы каждый день пользуемся большим количеством разных сервисов и для многих из них, требуются логин и пароль. А наш мозг отказывается запомнить их все...
 
